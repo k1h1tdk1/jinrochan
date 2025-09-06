@@ -1,4 +1,4 @@
-const CACHE = "jinro-memo-v1";
+const CACHE = "jinro-memo-v2";
 const ASSETS = [
   "./",
   "./index.html",
