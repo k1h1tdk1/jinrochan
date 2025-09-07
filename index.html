@@ -1,7 +1,232 @@
-<!doctype html><html lang="ja"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>test</title>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>人狼メトロポリス用メモ（モバイル）</title>
+<meta name="theme-color" content="#0e0f12">
+<style>
+:root{
+  --bg:#0e0f12; --card:#171a1f; --ink:#e9edf5; --muted:#9aa3b2; --border:#2a2f3a;
+  --accent:#6ea8fe; --pill:#1f2430; --ok:#3ecf8e; --bad:#ff7b7b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif}
+header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,rgba(14,15,18,.98),rgba(14,15,18,.86));backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.toolbar{display:flex;gap:.5rem;align-items:center;padding:.6rem .75rem}
+.brand{font-weight:700}
+.btn{appearance:none;border:1px solid var(--border);background:var(--card);color:var(--ink);border-radius:12px;padding:.5rem .7rem;font-size:.95rem}
+.btn.primary{border-color:transparent;background:linear-gradient(180deg,#2a62ff,#214fe0)}
+.tabs{display:flex;gap:.35rem;padding:.5rem .6rem; overflow-x:auto}
+.tab{flex:0 0 auto;border:1px solid var(--border);background:var(--card);padding:.4rem .7rem;border-radius:999px;color:var(--muted)}
+.tab.active{color:#fff;border-color:transparent;background:linear-gradient(180deg,#2a2f45,#1a2033)}
+main{padding:.6rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:.6rem}
+h2{font-size:1rem;margin:.2rem 0 .6rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.roleRow{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:12px;padding:.45rem .6rem;background:#12151c}
+.roleRow .name{font-size:.95rem}
+.counter{display:flex;gap:.35rem;align-items:center}
+.counter button{width:36px;height:32px;border:1px solid var(--border);border-radius:8px;background:#0f1116;color:#fff;font-size:1.1rem}
+.counter .val{min-width:28px;text-align:center}
+.list{display:flex;flex-direction:column;gap:.5rem}
+.speaker{display:grid;grid-template-columns:auto 100px 1fr;gap:.4rem;align-items:center;border:1px solid var(--border);border-radius:12px;padding:.45rem .6rem;background:#12151c}
+.speaker .num{font-weight:700}
+.rolePill{justify-self:start;border:1px solid var(--border);background:var(--pill);border-radius:999px;padding:.25rem .55rem;font-weight:600}
+.rolePill[data-role="占い師"]{border-color:#6ea8fe}
+.rolePill[data-role="霊媒師"]{border-color:#8f7bff}
+.rolePill[data-role="騎士"]{border-color:#3ecf8e}
+.rolePill[data-role="人狼"]{border-color:#ff7b7b}
+.rolePill[data-role="狂人"]{border-color:#ffc266}
+.rolePill[data-role="市民"]{border-color:#64748b}
+input[type="text"], textarea{width:100%;border:1px solid var(--border);border-radius:10px;background:#0f1116;color:#fff;padding:.55rem;font-size:.95rem}
+textarea{min-height:90px;resize:vertical}
+.hint{font-size:.85rem;color:var(--muted)}
+.gallery{display:grid;gap:.6rem}
+@media (min-width:860px){ .gallery{grid-template-columns:1.2fr .8fr}}
+.section{display:flex;flex-direction:column;gap:.5rem}
+.metaRow{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.small{font-size:.85rem;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--border);margin:.6rem 0}
+</style>
+</head>
 <body>
-  <h1>OK: HTML生きてる</h1>
-  <button onclick="alert('動いた！')">押して</button>
-</body></html>
+<header>
+  <div class="toolbar">
+    <div class="brand">人狼メモ（モバイル）</div>
+    <button id="saveBtn" class="btn primary">保存</button>
+    <button id="exportBtn" class="btn">出力</button>
+    <input id="importFile" type="file" accept="application/json" style="display:none">
+    <button id="importBtn" class="btn">読み込み</button>
+  </div>
+  <div id="tabs" class="tabs"></div>
+</header>
+
+<main>
+  <!-- 配役カスタム -->
+  <section class="card">
+    <h2>配役のカスタム</h2>
+    <div class="grid2" id="roleConfig"></div>
+    <div class="small hint">＋/−で数を調整。COは下の「発言者リスト」で個別にタップ切替。</div>
+  </section>
+
+  <div class="gallery">
+    <!-- 左: 発言者リスト -->
+    <section class="card section">
+      <h2>発言者リスト（タップで配役変更 / メモ）</h2>
+      <div class="list" id="speakerList"></div>
+      <div class="small hint">役職候補：未 / 市民 / 占い師 / 霊媒師 / 騎士 / 人狼 / 狂人</div>
+    </section>
+
+    <!-- 右: その日のまとめ -->
+    <section class="card section">
+      <h2>その日のまとめ</h2>
+      <label class="small">黒い人（番号や名前）</label>
+      <textarea id="blackArea" placeholder="例：2, 7 など"></textarea>
+      <label class="small">見えるライン（例：1−56、2−5 など）</label>
+      <textarea id="lineArea" placeholder="例：1-56 / 2-5"></textarea>
+      <hr>
+      <div class="small">ヒント：タブを切り替えると「発言メモ・黒い人・ライン」が日ごとに保存されるよ。</div>
+    </section>
+  </div>
+</main>
+
+<script>
+/* ====== 定義 ====== */
+const DAYS_MAX = 7;                          // 何日目までタブを出すか（必要なら増やしてOK）
+const SPEAKERS_DEFAULT = 9;                  // 初期の発言者数
+const ROLES = ["未","市民","占い師","霊媒師","騎士","人狼","狂人"];
+const ROLE_CONFIG_KEYS = ["市民","占い師","霊媒師","人狼","騎士","狂人"];
+const STORAGE_KEY = "metro_memo_v1";
+
+/* ====== 状態 ====== */
+let state = (()=> {
+  const cached = localStorage.getItem(STORAGE_KEY);
+  if(cached){ try{ return JSON.parse(cached);}catch{} }
+  // 初期状態
+  const obj = {
+    config: { 市民:3, 占い師:1, 霊媒師:1, 人狼:2, 騎士:1, 狂人:1 },
+    days: {}
+  };
+  for(let d=1; d<=DAYS_MAX; d++){
+    obj.days[d] = {
+      speakers: Array.from({length:SPEAKERS_DEFAULT}, (_,i)=>({ num:i+1, role:"未", memo:""})),
+      black:"", line:""
+    };
+  }
+  return obj;
+})();
+
+let currentDay = 1;
+
+/* ====== ユーティリティ ====== */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function cycleRole(cur){
+  const idx = ROLES.indexOf(cur);
+  return ROLES[(idx+1) % ROLES.length];
+}
+
+/* ====== タブ ====== */
+function renderTabs(){
+  const wrap = $("#tabs"); wrap.innerHTML="";
+  for(let d=1; d<=DAYS_MAX; d++){
+    const t = document.createElement("button");
+    t.className = "tab" + (d===currentDay ? " active":"");
+    t.textContent = d+"日目";
+    t.addEventListener("click", ()=>{ currentDay=d; renderDay(); renderTabs(); save(); });
+    wrap.appendChild(t);
+  }
+}
+
+/* ====== 配役カスタム ====== */
+function renderRoleConfig(){
+  const box = $("#roleConfig"); box.innerHTML="";
+  for(const key of ROLE_CONFIG_KEYS){
+    const row = document.createElement("div");
+    row.className = "roleRow";
+    const name = document.createElement("div");
+    name.className = "name"; name.textContent = key+"の数";
+    const c = document.createElement("div"); c.className="counter";
+    const minus = document.createElement("button"); minus.textContent = "−";
+    const val = document.createElement("div"); val.className="val"; val.textContent = state.config[key] ?? 0;
+    const plus = document.createElement("button"); plus.textContent = "＋";
+    minus.addEventListener("click", ()=>{ state.config[key]=Math.max(0,(state.config[key]||0)-1); val.textContent=state.config[key]; save(); });
+    plus.addEventListener("click",  ()=>{ state.config[key]=(state.config[key]||0)+1; val.textContent=state.config[key]; save(); });
+    c.append(minus,val,plus);
+    row.append(name,c);
+    box.appendChild(row);
+  }
+}
+
+/* ====== 日ごとの画面 ====== */
+function renderDay(){
+  const day = state.days[currentDay];
+  // 発言者
+  const list = $("#speakerList"); list.innerHTML="";
+  day.speakers.forEach(sp=>{
+    const row = document.createElement("div");
+    row.className = "speaker";
+    const num = document.createElement("div");
+    num.className = "num"; num.textContent = sp.num;
+    const pill = document.createElement("button");
+    pill.className = "rolePill"; pill.textContent = sp.role; pill.dataset.role = sp.role;
+    pill.addEventListener("click", ()=>{
+      sp.role = cycleRole(sp.role);
+      pill.textContent = sp.role;
+      pill.dataset.role = sp.role;
+      save();
+    });
+    const memo = document.createElement("input");
+    memo.type = "text"; memo.placeholder = "発言メモ（要点だけでOK）";
+    memo.value = sp.memo || "";
+    memo.addEventListener("input", ()=>{ sp.memo = memo.value; saveDebounced(); });
+    row.append(num,pill,memo);
+    list.appendChild(row);
+  });
+
+  // まとめ欄
+  $("#blackArea").value = day.black || "";
+  $("#lineArea").value  = day.line  || "";
+}
+
+/* ====== まとめ欄の保存 ====== */
+$("#blackArea").addEventListener("input", ()=>{
+  state.days[currentDay].black = $("#blackArea").value; saveDebounced();
+});
+$("#lineArea").addEventListener("input", ()=>{
+  state.days[currentDay].line  = $("#lineArea").value; saveDebounced();
+});
+let t=null; function saveDebounced(){ clearTimeout(t); t=setTimeout(save, 200); }
+
+/* ====== 保存/入出力 ====== */
+$("#saveBtn").addEventListener("click", ()=>{ save(); alert("保存したよ！"); });
+$("#exportBtn").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href=url; a.download="metro-memo.json"; a.click();
+  URL.revokeObjectURL(url);
+});
+$("#importBtn").addEventListener("click", ()=> $("#importFile").click());
+$("#importFile").addEventListener("change", (e)=>{
+  const f=e.target.files?.[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const obj=JSON.parse(r.result);
+      if(obj?.config && obj?.days){ state=obj; currentDay=1; renderAll(); save(); }
+      else alert("形式が違うかも；；");
+    }catch{ alert("読み込み失敗；；"); }
+    e.target.value="";
+  };
+  r.readAsText(f);
+});
+
+/* ====== 初期描画 ====== */
+function renderAll(){ renderTabs(); renderRoleConfig(); renderDay(); }
+renderAll();
+</script>
+</body>
+</html>
