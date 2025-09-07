@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>人狼メトロポリス用メモ（モバイル）</title>
+<title>人狼メモ</title>
 <meta name="theme-color" content="#0e0f12">
 <style>
 :root{
@@ -52,14 +52,6 @@ hr{border:0;border-top:1px solid var(--border);margin:.6rem 0}
 </head>
 <body>
 <header>
-  <div class="toolbar">
-    <div class="brand">人狼メモ（モバイル）</div>
-    <button id="saveBtn" class="btn primary">保存</button>
-    <button id="exportBtn" class="btn">出力</button>
-    <input id="importFile" type="file" accept="application/json" style="display:none">
-    <button id="importBtn" class="btn">読み込み</button>
-  </div>
-  <div id="tabs" class="tabs"></div>
 </header>
 
 <main>
@@ -81,12 +73,12 @@ hr{border:0;border-top:1px solid var(--border);margin:.6rem 0}
     <!-- 右: その日のまとめ -->
     <section class="card section">
       <h2>その日のまとめ</h2>
-      <label class="small">黒い人（番号や名前）</label>
+      <label class="small">黒い人</label>
       <textarea id="blackArea" placeholder="例：2, 7 など"></textarea>
-      <label class="small">見えるライン（例：1−56、2−5 など）</label>
+      <label class="small">見えるライン</label>
       <textarea id="lineArea" placeholder="例：1-56 / 2-5"></textarea>
       <hr>
-      <div class="small">ヒント：タブを切り替えると「発言メモ・黒い人・ライン」が日ごとに保存されるよ。</div>
+      <div class="small">タブを切り替えると「発言メモ・黒い人・ライン」が日ごとに保存されます。</div>
     </section>
   </div>
 </main>
